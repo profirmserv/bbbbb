@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+IFS=$'\n\t'
+
+export HOME="$BUILDDIR/pip-home"
+mkdir -p "$HOME"
+
+python3 -m pip install \
+    --root="$DESTDIR" \
+    --no-warn-script-location \
+    --root-user-action=ignore \
+    kas
