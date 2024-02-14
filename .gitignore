@@ -1,2 +1,4 @@
-/mkosi.builddir/
-/mkosi.cache/
+/mkosi.builddir/*
+/mkosi.cache/*
+/mkosi.output/*
+!.keep
