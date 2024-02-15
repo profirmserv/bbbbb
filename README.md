@@ -5,7 +5,7 @@
 * A modern systemd-based Linux system (I built this on Ubuntu 23.10.)
 * A recent [mkosi][mkosi] (I used v20.2; v14 is too old.)
 
-## Building the builder image
+## Building
 
 From this directory, run:
 
@@ -14,7 +14,7 @@ mkosi build
 sudo cp -d -t /var/lib/machines mkosi.output/bitbake-debian-11-kirkstone*
 ```
 
-### Rebuilding
+## Rebuilding
 
 To remove an existing image in `mkosi.output` before building, run `mkosi -f
 build`.
@@ -25,48 +25,6 @@ build`.
 
 Downloaded distribution packages are also cached. To also remove this cache
 before building, run `mkosi -fff build`.
-
-## Using the builder image
-
-Assuming you've installed the image to `/var/lib/machines` and the current
-directory is your root of your Bitbake project, run:
-
-```sh
-sudo systemd-nspawn \
-    --image=/var/lib/machines/bitbake-debian-11-kirkstone --read-only \
-    --private-users=pick --private-users-ownership=map \
-    --bind-user=$USER --bind=$PWD:/bakery \
-    --user=$USER --chdir=/bakery --as-pid2 \
-    kas build kas/gfxdemo.yaml
-```
-
-### Using a host-wide sstate-cache and downloads
-
-#### Read-write
-
-```sh
-sudo systemd-nspawn \
-    --image=/var/lib/machines/bitbake-debian-11-kirkstone --read-only \
-    --private-users=pick --private-users-ownership=map \
-    --bind-user=$USER --bind=$PWD:/bakery \
-    --tmpfs=/srv --bind=/srv/bitbake \
-    --bind=/run/hashserv-rw \
-    --user=$USER --chdir=/bakery --as-pid2 \
-    kas build kas/gfxdemo.yaml:kas/shared-state-rw.yaml
-```
-
-#### Read-only
-
-```sh
-sudo systemd-nspawn \
-    --image=/var/lib/machines/bitbake-debian-11-kirkstone --read-only \
-    --private-users=pick --private-users-ownership=map \
-    --bind-user=$USER --bind=$PWD:/bakery \
-    --tmpfs=/srv --bind-ro=/srv/bitbake \
-    --bind=/run/hashserv-ro \
-    --user=$USER --chdir=/bakery --as-pid2 \
-    kas build kas/gfxdemo.yaml:kas/shared-state-ro.yaml
-```
 
 ## Future work
 
