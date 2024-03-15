@@ -1,0 +1,6 @@
+[core]
+untrackedCache = true
+
+[user]
+name = "J. Random Builder"
+email = "nobody@example.com"
