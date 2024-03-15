@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+IFS=$'\n\t'
+HERE=$(realpath --relative-to="$PWD" "$(dirname "${BASH_SOURCE[0]-$0}")")
+GROUP=$(id -gn)
+
+FAKE_HOMEDIR=1
+HOSTWIDE_DIR=/srv/bitbake
+HOSTWIDE_PARENT_TMPFS=1
+HASHSERV_RW=/run/hashserv-rw
+HASHSERV_RO=/run/hashserv-ro
+HASHSERV_PARENT_TMPFS=0
+
+homedir_opts=()
+if [[ "$FAKE_HOMEDIR" -gt 0 ]]; then
+    # systemd-nspawn doesn't provide a way to make a user-owned tmpfs, so we
+    # have to make a real directory.
+    trap 'rm -rf "$homedir_path"' EXIT
+    homedir_path=$(mktemp -d)
+    homedir_opts+=(
+        --bind="$homedir_path":/run/fake/home/"$USER"
+        --setenv=HOME=/run/fake/home/"$USER"
+    )
+fi
+
+# opportunistically bind host-wide caches into container
+hostwide_opts=()
+if [[ -w "$HOSTWIDE_DIR"/sstate_cache || -w "$HOSTWIDE_DIR"/downloads ]]; then
+    echo "will bind $HOSTWIDE_DIR read/write into container" >&2
+    hostwide_opts+=(--bind="$HOSTWIDE_DIR")
+elif [[ -r "$HOSTWIDE_DIR"/sstate_cache || -r "$HOSTWIDE_DIR"/downloads ]]; then
+    echo "will bind $HOSTWIDE_DIR read-only into container" >&2
+    hostwide_opts+=(--bind-ro="$HOSTWIDE_DIR")
+fi
+if [[ ${#hostwide_opts[@]} -gt 0 && "$HOSTWIDE_PARENT_TMPFS" -gt 0 ]]; then
+    hostwide_opts+=(--tmpfs="$(dirname "$HOSTWIDE_DIR")")
+fi
+
+# opportunistically bind hashserv socket into container
+hashserv_opts=()
+if [[ -r "$HASHSERV_RW" ]]; then
+    echo "will bind $HASHSERV_RW into container" >&2
+    hashserv_opts+=(--bind="$HASHSERV_RW")
+    if [[ "$HASHSERV_PARENT_TMPFS" -gt 0 ]]; then
+        hashserv_opts+=(--tmpfs="$(dirname "$HASHSERV_RW")")
+    fi
+elif [[ -r "$HASHSERV_RO" ]]; then
+    echo "will bind $HASHSERV_RO into container" >&2
+    hashserv_opts+=(--bind="$HASHSERV_RO")
+    if [[ "$HASHSERV_PARENT_TMPFS" -gt 0 ]]; then
+        hashserv_opts+=(--tmpfs="$(dirname "$HASHSERV_RO")")
+    fi
+fi
+
+if [[ $# -eq 0 ]]; then
+    set -- bash
+fi
+
+exec sudo systemd-nspawn \
+    --image=/var/lib/machines/bitbake-debian-11-kirkstone \
+    --read-only \
+    --private-users=pick \
+    --private-users-ownership=map \
+    --bind-user="$USER" \
+    "${homedir_opts[@]}" \
+    --bind="$PWD":/bakery \
+    "${hostwide_opts[@]}" \
+    "${hashserv_opts[@]}" \
+    --user="$USER" \
+    --chdir=/bakery \
+    --as-pid2 \
+    -- \
+    "$@"
