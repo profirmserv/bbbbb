@@ -60,6 +60,7 @@ fi
 exec sudo systemd-nspawn \
     --image=/var/lib/machines/bitbake-debian-11-kirkstone \
     --read-only \
+    --tmpfs=/var/tmp:mode=1777 \
     --private-users=pick \
     --private-users-ownership=map \
     --bind-user="$USER" \
