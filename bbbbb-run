@@ -2,15 +2,17 @@
 
 set -euo pipefail
 IFS=$'\n\t'
-HERE=$(realpath --relative-to="$PWD" "$(dirname "${BASH_SOURCE[0]-$0}")")
 GROUP=$(id -gn)
 
-FAKE_HOMEDIR=1
-HOSTWIDE_DIR=/srv/bitbake
-HOSTWIDE_PARENT_TMPFS=1
-HASHSERV_RW=/run/hashserv-rw
-HASHSERV_RO=/run/hashserv-ro
-HASHSERV_PARENT_TMPFS=0
+BAKERY_ROOT=${BBBBB_BAKERY_ROOT:-$PWD}
+BAKERY_MOUNTPOINT=${BBBBB_BAKERY_MOUNTPOINT:-/bakery}
+FAKE_HOMEDIR=${BBBBB_FAKE_HOMEDIR:-1}
+HOSTWIDE_DIR=${BBBBB_HOSTWIDE_DIR:-/srv/bitbake}
+HOSTWIDE_PARENT_TMPFS=${BBBBB_HOSTWIDE_PARENT_TMPFS:-1}
+HASHSERV_RW=${BBBBB_HASHSERV_RW:-/run/hashserv-rw}
+HASHSERV_RO=${BBBBB_HASHSERV_RO:-/run/hashserv-ro}
+HASHSERV_PARENT_TMPFS=${BBBBB_HASHSERV_PARENT_TMPFS:-0}
+MACHINE_IMAGE=${BBBBB_MACHINE_IMAGE:-/var/lib/machines/bitbake-debian-11-kirkstone}
 
 homedir_opts=()
 if [[ "$FAKE_HOMEDIR" -gt 0 ]]; then
@@ -58,14 +60,14 @@ if [[ $# -eq 0 ]]; then
 fi
 
 exec sudo systemd-nspawn \
-    --image=/var/lib/machines/bitbake-debian-11-kirkstone \
+    --image="$MACHINE_IMAGE" \
     --read-only \
     --tmpfs=/var/tmp:mode=1777 \
     --private-users=pick \
     --private-users-ownership=map \
     --bind-user="$USER" \
     "${homedir_opts[@]}" \
-    --bind="$PWD":/bakery \
+    --bind="$BAKERY_ROOT":/bakery \
     "${hostwide_opts[@]}" \
     "${hashserv_opts[@]}" \
     --user="$USER" \
