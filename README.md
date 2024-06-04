@@ -3,7 +3,7 @@
 ## Requirements
 
 * A modern systemd-based Linux system (I built this on Ubuntu 23.10.)
-* A recent [mkosi][mkosi] (I used v20.2; v14 is too old.)
+* A recent [mkosi][] (I used v20.2; v14 is too old.)
 
 ## Building
 
@@ -11,7 +11,7 @@ From this directory, run:
 
 ```sh
 mkosi build
-sudo cp -d -t /var/lib/machines mkosi.output/bitbake-debian-11-kirkstone*
+sudo cp -d -t /var/lib/machines mkosi.output/bitbake-debian-12-mickledore*
 ```
 
 ## Rebuilding
@@ -28,8 +28,8 @@ before building, run `mkosi -fff build`.
 
 ## Future work
 
-* Figure out why using `systemd-nspawn --machine=bitbake-debian-11-kirkstone`
-  results in the error "No machine for image: bitbake-debian-11-kirkstone".
+* Figure out why using `systemd-nspawn --machine=bitbake-debian-12-mickledore`
+  results in the error "No machine for image: bitbake-debian-12-mickledore".
 * Make a mkosi.nspawn file containing the systemd-nspawn options that aren't
   user- or project-specific.
 * Make this a bootable image that can be managed by systemd-machined. Add
