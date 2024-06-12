@@ -10,7 +10,12 @@
 From this directory, run:
 
 ```sh
-mkosi build
+# Build Debian 11 image for Yocto 4.0
+mkosi --image=kirkstone build
+sudo cp -d -t /var/lib/machines mkosi.output/bitbake-debian-11-kirkstone*
+
+# Build Debian 12 image for Yocto 4.2
+mkosi --image=mickledore build
 sudo cp -d -t /var/lib/machines mkosi.output/bitbake-debian-12-mickledore*
 ```
 
