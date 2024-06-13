@@ -73,5 +73,6 @@ exec sudo systemd-nspawn \
     --user="$USER" \
     --chdir=/bakery \
     --as-pid2 \
+    --console=autopipe \
     -- \
     "$@"
